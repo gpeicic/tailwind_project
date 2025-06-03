@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { HomeIcon, PackageIcon } from 'lucide-react';
 import { CreditCardIcon, WalletIcon } from 'lucide-react';
+import { useCart } from './CartContext';
+import axios from 'axios';
 
 
 export default function PaymentDetails() {
+  const { stavke,fetchStavke } = useCart();
+  const [proizvodiMap, setProizvodiMap] = useState({});
+  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem('token');
   const [step, setStep] = useState(2);
   const [deliveryMethod, setDeliveryMethod] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState(null);
@@ -23,7 +29,35 @@ export default function PaymentDetails() {
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+  useEffect(() => {
+    async function fetchProizvodi() {
+      const noviMap = {};
+      for (const stavka of stavke) {
+        if (!proizvodiMap[stavka.proizvod_id]) {
+          try {
+            const res = await axios.get(`http://localhost:8081/proizvodi/${stavka.proizvod_id}`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            noviMap[stavka.proizvod_id] = res.data;
+          } catch (err) {
+            console.error(`Greška pri dohvaćanju proizvoda ID ${stavka.proizvod_id}:`, err);
+          }
+        }
+      }
+      setProizvodiMap((prev) => ({ ...prev, ...noviMap }));
+      setLoading(false);
+    }
 
+    if (stavke.length > 0) {
+      fetchProizvodi();
+    } else {
+      setLoading(false);
+    }
+  }, [stavke]);
+
+  if (loading) return <div>Učitavanje...</div>;
   return (
     <div className="flex h-full w-full min-h-screen">
       {/* Left panel */}
@@ -173,57 +207,161 @@ export default function PaymentDetails() {
           </>
         )}
         {step === 3 && (
-            <>
-                <h2 className="text-2xl font-semibold text-left mb-4">Način plaćanja</h2>
-                <p className="text-lg font-medium mb-4 text-left font-semibold">Odaberite način plaćanja</p>
-                
-                <div className="flex flex-col space-y-4">
-                <div
-                    className={`border rounded-xl p-4 cursor-pointer flex items-center justify-between ${
-                    paymentMethod === 'card' ? 'border-black bg-white' : 'border-transparent bg-gray-200'
-                    }`}
-                    onClick={() => setPaymentMethod('card')}
-                >
-                    <div className="flex items-center space-x-3">
-                    <CreditCardIcon size={28} />
-                    <span className="text-md font-medium">Kartično plaćanje</span>
-                    </div>
-                    <span className="text-sm text-gray-600">Visa, Mastercard, Maestro</span>
-                </div>
+        <>
+          <h2 className="text-2xl font-semibold text-left mb-4">Način plaćanja</h2>
+          <p className="text-lg font-medium mb-4 text-left font-semibold">Odaberite način plaćanja</p>
 
-                <div
-                    className={`border rounded-xl p-4 cursor-pointer flex items-center justify-between ${
-                    paymentMethod === 'cash' ? 'border-black bg-white' : 'border-transparent bg-gray-200'
-                    }`}
-                    onClick={() => setPaymentMethod('cash')}
-                >
-                    <div className="flex items-center space-x-3">
-                    <WalletIcon size={28} />
-                    <span className="text-md font-medium">Plaćanje pouzećem</span>
-                    </div>
-                    <span className="text-sm text-gray-600">Gotovinom pri preuzimanju</span>
+          <div className="flex flex-col space-y-4">
+            {/* Kartično plaćanje */}
+            <div
+              className={`border rounded-xl p-4 cursor-pointer flex flex-col space-y-2 transition-all duration-300 ${
+                paymentMethod === 'card' ? 'border-black bg-white' : 'border-transparent bg-gray-200'
+              }`}
+              onClick={() => setPaymentMethod('card')}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <CreditCardIcon size={28} />
+                  <span className="text-md font-medium">Kartično plaćanje</span>
                 </div>
+                <span className="text-sm text-gray-600">Visa, Mastercard, Maestro</span>
+              </div>
 
-                <div
-                    className={`border rounded-xl p-4 cursor-pointer flex items-center justify-between ${
-                    paymentMethod === 'paypal' ? 'border-black bg-white' : 'border-transparent bg-gray-200'
-                    }`}
-                    onClick={() => setPaymentMethod('paypal')}
-                >
-                    <div className="flex items-center space-x-3">
-                    <img src="/paypal-logo.png" alt="PayPal" className="h-6" />
-                    <span className="text-md font-medium">PayPal</span>
-                    </div>
-                    <span className="text-sm text-gray-600">Preusmjeravanje na PayPal</span>
+              {paymentMethod === 'card' && (
+                <div className="mt-4 space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Broj kartice"
+                    className="w-full border p-2 rounded-md"
+                  />
+                  <div className="flex space-x-3">
+                    <input
+                      type="text"
+                      placeholder="Datum isteka (MM/YY)"
+                      className="w-1/2 border p-2 rounded-md"
+                    />
+                    <input
+                      type="text"
+                      placeholder="CVV"
+                      className="w-1/2 border p-2 rounded-md"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Ime i prezime"
+                    className="w-full border p-2 rounded-md"
+                  />
                 </div>
+              )}
+            </div>
+
+            {/* Plaćanje pouzećem */}
+            <div
+              className={`border rounded-xl p-4 cursor-pointer flex items-center justify-between ${
+                paymentMethod === 'cash' ? 'border-black bg-white' : 'border-transparent bg-gray-200'
+              }`}
+              onClick={() => setPaymentMethod('cash')}
+            >
+              <div className="flex items-center space-x-3">
+                <WalletIcon size={28} />
+                <span className="text-md font-medium">Plaćanje pouzećem</span>
+              </div>
+              <span className="text-sm text-gray-600">Gotovinom pri preuzimanju</span>
+            </div>
+
+            {/* PayPal */}
+            <div
+              className={`border rounded-xl p-4 cursor-pointer flex flex-col space-y-2 transition-all duration-300 ${
+                paymentMethod === 'paypal' ? 'border-black bg-white' : 'border-transparent bg-gray-200'
+              }`}
+              onClick={() => setPaymentMethod('paypal')}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <img src="/paypal-logo.png" alt="PayPal" className="h-6" />
+                  <span className="text-md font-medium">PayPal</span>
                 </div>
-            </>
-        )}
+                <span className="text-sm text-gray-600">Preusmjeravanje na PayPal</span>
+              </div>
+
+              {paymentMethod === 'paypal' && (
+                <div className="mt-4 space-y-3">
+                  <input
+                    type="email"
+                    placeholder="PayPal email"
+                    className="w-full border p-2 rounded-md"
+                  />
+                  <input
+                    type="password"
+                    placeholder="PayPal lozinka"
+                    className="w-full border p-2 rounded-md"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
       </div>
 
       {/* Right panel - trenutno prazno i pomaknuto 25% od lijeve strane */}
       <div className="w-1/2 bg-gray-200  p-6 min-h-full">
-        {/* Ostavi prazno za sada */}
+        <h2 className="text-xl font-semibold mb-4">Proizvodi u tvojoj košarici</h2>
+        <div className="flex flex-col gap-4">
+          {stavke.map((stavka) => {
+            const proizvod = proizvodiMap[stavka.proizvod_id];
+            if (!proizvod) return null;
+
+            return (
+              <div key={stavka.id} className="flex items-center justify-between bg-white shadow-sm rounded p-3">
+              <div className="flex items-center">
+                <div className="w-20 h-24 mr-4">
+                  <img
+                    src={`/proizvodi/${proizvod.ime}.jpg`}
+                    alt={proizvod.ime}
+                    className="w-full h-full object-cover rounded"
+                  />
+                </div>
+                <div>
+                  <p className="font-semibold">{proizvod.ime}</p>
+                  <p className="text-sm text-gray-600">{proizvod.marka}</p>
+                  <p className="text-sm text-gray-600">{proizvod.opis}</p>
+                  <p className="mt-1 font-semibold">
+                    {stavka.kolicina} kom × {proizvod.cijena.toFixed(2)} $ = {(stavka.kolicina * proizvod.cijena).toFixed(2)} $
+                  </p>
+                </div>
+              </div>
+          
+              <button
+                onClick={async () => {
+                  try {
+                    await axios.delete("http://localhost:8081/listaNarudzba", {
+                      headers: { Authorization: `Bearer ${token}` },
+                      data: stavka,
+                    });
+                    await fetchStavke();
+                  } catch (err) {
+                    console.error("Greška pri brisanju stavke", err);
+                    await fetchStavke(); // fallback
+                  }
+                }}
+                className="text-gray-400 hover:text-red-600 transition-colors"
+                title="Obriši stavku"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                >
+                  <path d="M3 6h18v2H3zm2 3h14l-1.5 12.5c-.1.8-.8 1.5-1.6 1.5H8.1c-.8 0-1.5-.7-1.6-1.5L5 9zm5 2v8h2v-8H10zm4 0v8h2v-8h-2z" />
+                </svg>
+              </button>
+            </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
