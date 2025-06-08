@@ -5,7 +5,7 @@ const Footer = () => {
   return (
     <div>
       {/* Prvi Navbar */}
-      <nav className="shadow-md bg-[rgb(254,232,152)] text-black px-[200px] py-4 flex items-center justify-between mt-30">
+      <nav className="shadow-md bg-[rgb(254,232,152)] text-black px-[200px] py-4 flex items-center justify-between ">
         <div className="flex items-center font-semibold text-black">
           <FaShoppingCart className="mr-2" />
           <span className="text-sm">Besplatna dostava | povrat</span>

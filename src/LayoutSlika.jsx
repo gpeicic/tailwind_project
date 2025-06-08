@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function LayoutSlika() {
   return (
-    <div className="w-full">
+    <div className="w-full mb-40">
       {/* Gornja slika */}
       <div className="w-full mt-[100px]">
         <img
