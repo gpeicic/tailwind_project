@@ -198,7 +198,9 @@ export default function Navbar() {
 
                 {/* Heart (Favorites) Icon */}
                 <div className="text-xl cursor-pointer hover:text-black">
-                <FaHeart />
+                <Link to="/wishlist">
+                    <FaHeart />
+                </Link>
                 </div>
 
                 

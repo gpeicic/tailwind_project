@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import ImageCarousel from './ImageCarousel';
 import axios from 'axios';
 import { useCart } from './CartContext'; 
+import {FaHeart} from 'react-icons/fa';
 
 const CategoryPage = () => {
     const { category, selectedGender, podkategorija } = useParams();
@@ -129,7 +130,7 @@ const CategoryPage = () => {
         const newSortOption = event.target.value;
         setSortOption(newSortOption);
         
-        // Ažuriraj sortiranje postojećih proizvoda
+       
         let sortedProducts = [...proizvodi];
         if (newSortOption === "Najviša cijena") {
             sortedProducts.sort((a, b) => b.cijena - a.cijena);
@@ -195,6 +196,23 @@ const CategoryPage = () => {
           alert('Greška pri dodavanju stavke.');
         } 
       }
+      
+      const dodajUWishlistu = async (proizvodId) => {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await fetch(`http://localhost:8081/wishlist/add?proizvodId=${proizvodId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+        } catch (error) {
+            console.error(error);
+            alert('Greška pri dodavanju u wishlistu.');
+        }
+    };
+
     return (
         <div className="min-h-screen flex ">
             {/* Sidebar sa kategorijama */}
@@ -282,6 +300,14 @@ const CategoryPage = () => {
                             key={proizvod.id} 
                             className="bg-white rounded-m shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 relative group"
                         >
+                              <button
+                                onClick={() => dodajUWishlistu(proizvod.id)}
+                                className="absolute top-2 right-2 text-gray-300 hover:text-gray-700 z-20 text-xl"
+                                aria-label="Dodaj u wishlist"
+                                type="button"
+                            >
+                                <FaHeart />
+                            </button>
                             
                             {/* Slika proizvoda */}
                             <div className="bg-gray-300 h-100 w-full flex items-center justify-center relative">

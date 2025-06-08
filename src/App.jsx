@@ -10,6 +10,7 @@ import PaymentDetails from './PaymentDetails';
 import { CartProvider } from './CartContext';
 import LoginForm from './LoginForm';
 import UserDetails from './UserDetails';
+import Wishlist from './Wishlist';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
               <Route path="/placanje" element={<PaymentDetails/>}/>
               <Route path="/prijava" element={<LoginForm/>}/>
               <Route path="/osobniPodaci" element={<UserDetails/>}/>
+              <Route path="/wishlist" element={<Wishlist />} />
           </Routes>
             <Footer/>
       </CartProvider>      
